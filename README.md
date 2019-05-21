@@ -1,14 +1,14 @@
-# CloudFormation��VPC,Subnet�����ݒ�
+# CloudFormationでVPC,Subnet自動設定
 
-AWS�A�J�E���g�𑽂����s������ł́A�l�b�g���[�N�\���ɋK�������߂�
-�����ō\�z����Ɖ^�p�ʂł��悢�Ǝv���܂��B
+AWSアカウントを多く発行する環境では、ネットワーク構成に規則を決めて
+自動で構築すると運用面でもよいと思います。
 
-�ȉ����e��VPC�A�T�u�l�b�g���쐬����CloudFormation�̃T���v���ł��B
+以下内容でVPC、サブネットを作成するCloudFormationのサンプルです。
 
-�EVPC�Z�O�����g��10.XXX.0.0/16' ���Θb�`���Őݒ�
-�E�A�J�E���g
-�EDev,Prd�ɕ�����VPC�Z�O�����g���쐬
-�E�X��ap-northeast-1a,ap-northeast-1c�ɂЂƂ��p�u���b�N�T�u�l�b�g���쐬
-�E�ŏ��ɃA�J�E���g����Θb�`���œ��́Btest�Ɠ��͂����ꍇ�Aprd-test-vpc�ȂǂƔ��f�����B
+  - VPCセグメントが10.XXX.0.0/16' ※対話形式で設定
+  - アカウント
+  - Dev,Prdに分けてVPCセグメントを作成
+  - 更にap-northeast-1a,ap-northeast-1cにひとつずつパブリックサブネットを作成
+  - 最初にアカウント名を対話形式で入力。testと入力した場合、prd-test-vpcなどと反映される。
 
-���ŉ���SSH�̐ݒ�ŋ�������IP���C�����Ă��������B
+※最下部SSHの設定で許可したいIPを修正してください。
