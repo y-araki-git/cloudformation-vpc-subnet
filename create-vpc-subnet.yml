@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: 2010-09-09
+ 
+Parameters:
+  VpcSegment:
+    Description: Enter the vpc second octet
+    Type: String
+    AllowedPattern: '[0-9]{1,3}'
+    ConstraintDescription: 'Please enter the second octet of IP used for VPC. 10.XXX.0.0/16'
+ 
+  AccountName:
+    Type: String
+    Description: Enter account or service name
+    AllowedPattern: "[-a-z0-9]*"
+    ConstraintDescription: "Please input a~z or 0~9"
+ 
+  Environment:
+    Type: String
+    Description: Enter VPC environment
+    AllowedValues:
+      - dev
+      - prd
+ 
+Resources:
+  myVpc:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Sub 10.${VpcSegment}.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: "Name"
+          Value: !Sub '${Environment}-${AccountName}-vpc'
+ 
+  PublicASubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: 'ap-northeast-1a'
+      CidrBlock: !Sub 10.${VpcSegment}.0.0/24
+      Tags:
+        - Key: "Name"
+          Value: !Sub '${Environment}-${AccountName}-public-a'
+      VpcId: !Ref myVpc
+ 
+  PublicCSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: 'ap-northeast-1c'
+      CidrBlock: !Sub 10.${VpcSegment}.1.0/24
+      Tags:
+        - Key: "Name"
+          Value: !Sub '${Environment}-${AccountName}-public-c'
+      VpcId: !Ref myVpc
+ 
+  PrivateASubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: 'ap-northeast-1a'
+      CidrBlock: !Sub 10.${VpcSegment}.2.0/24
+      Tags:
+        - Key: "Name"
+          Value: !Sub ${Environment}-${AccountName}-private-a
+      VpcId: !Ref myVpc
+ 
+  PrivateCSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: 'ap-northeast-1c'
+      CidrBlock: !Sub 10.${VpcSegment}.3.0/24
+      Tags:
+        - Key: "Name"
+          Value: !Sub ${Environment}-${AccountName}-private-c
+      VpcId: !Ref myVpc
+ 
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: "Name"
+          Value: !Sub ${Environment}-${AccountName}-vpc-igw
+  GatewayToInternet:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref myVpc
+      InternetGatewayId: !Ref InternetGateway
+ 
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref myVpc
+ 
+  PublicASubnetAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicASubnet
+ 
+  PublicCSubnetAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicCSubnet
+ 
+  PrivateASubnetAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PrivateASubnet
+ 
+  PrivateCSubnetAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PrivateCSubnet
+ 
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: GatewayToInternet
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+ 
+  DefaultSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Allow SSH access from my office'
+      SecurityGroupIngress:
+        - IpProtocol : tcp
+          FromPort : '22'
+          ToPort : '22'
+          CidrIp : xxx.xxx.xxx.xxx/32
+      VpcId: !Ref myVpc
